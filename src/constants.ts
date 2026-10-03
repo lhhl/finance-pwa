@@ -1,4 +1,4 @@
-export const SUPABASE_STORAGE_PATH = `${import.meta.env.VITE_SUPABASE_URL}/${import.meta.env.VITE_SUPABASE_STORAGE_PATH}`;
+export const SUPABASE_STORAGE_PATH = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public`;
 export const CAT_ICON_PATH = `${SUPABASE_STORAGE_PATH}/cat_icon`;
 export const TRANSACTION_SOURCE = {
   MONEY: 'MONEY',
