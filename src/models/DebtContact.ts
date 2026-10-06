@@ -4,12 +4,14 @@ import { DEBT_DUE_SOON_DAYS } from "../constants";
 export class DebtContact {
   id: string;
   name: string;
+  user_id: string;
   debts: Debt[]
 
-  constructor(debtContact: DebtContact) {
-    const { id, name, debts } = debtContact;
+  constructor(debtContact: Omit<DebtContact, 'totalAmount' | 'hasDueDebts'>) {
+    const { id, name, user_id, debts } = debtContact;
     this.id = id;
     this.name = name;
+    this.user_id = user_id;
     this.debts = (debts || []).map((debt) => new Debt(debt));
   }
 
@@ -18,6 +20,6 @@ export class DebtContact {
   }
 
   get hasDueDebts(): boolean {
-    return this.debts.some((debt) => debt.untilDueDate <= DEBT_DUE_SOON_DAYS);
+    return this.debts.some((debt) => debt.untilDueDate != null && debt.untilDueDate <= DEBT_DUE_SOON_DAYS);
   }
 }

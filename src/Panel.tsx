@@ -23,7 +23,7 @@ const MENU_ITEMS = [
   },
   {
     id: '4',
-    title: 'Khoản nợ',
+    title: 'Khoản cho vay - nợ',
     icon: 'person_2',
     link: '/debts/'
   }

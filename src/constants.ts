@@ -23,12 +23,16 @@ export const PICKLEBALL_FEES = [
     text: '92k'
   },
   {
+    value: 100000,
+    text: '100k'
+  },
+  {
     value: 104000,
     text: '104k'
   },
   {
-    value: 100000,
-    text: '100k'
+    value: 112000,
+    text: '112k'
   },
   {
     value: 120000,

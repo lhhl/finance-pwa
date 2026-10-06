@@ -33,7 +33,8 @@ export class DebtContactService extends BaseSupabaseService {
   async getAllContacts(): Promise<DebtContact[]> {
     const { data, error } = await this.supabase
       .from(this.tableName)
-      .select('*');
+      .select('*')
+      .order('name');
 
     if (error) {
       throw new Error(`Failed to fetch from ${this.tableName}: ${error.message}`);
@@ -42,5 +43,22 @@ export class DebtContactService extends BaseSupabaseService {
     if (!data) return [];
 
     return data.map((contact) => new DebtContact(contact));
+  }
+
+  /**
+   * Get a single contact by user_id
+   */
+  async getContactByUserId(userId: string): Promise<DebtContact | null> {
+    const { data, error } = await this.supabase
+      .from(this.tableName)
+      .select(`*`)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to fetch from ${this.tableName}: ${error.message}`);
+    }
+
+    return data ? new DebtContact(data) : null;
   }
 }

@@ -3,10 +3,14 @@ import { Page, Navbar, Block, List, Button, ListInput, Icon, useStore, f7 } from
 import { Debt } from '../models/Debt';
 import { DebtContact } from '../models/DebtContact';
 import store from '../store';
+import { DebtService } from '../services/DebtService';
+import { useAuth } from '../auth/AuthContext';
+
+const debtService = new DebtService();
 
 interface DebtDetailProps {
   id?: string | number;
-  onSave?: (data: { amount: number; contactId: string; dueDay: number; interestRate: number }) => void;
+  onSave?: (data: { amount: number; contactId: string; dueDay: number | null; interestRate: number }) => void;
   onCancel?: () => void;
   f7router: { back: () => void };
 }
@@ -14,7 +18,7 @@ interface DebtDetailProps {
 interface DebtForm {
   amount: string;
   contactId: string;
-  dueDay: number;
+  dueDay: number | null;
   interestRate: string;
 }
 
@@ -25,10 +29,10 @@ const DebtDetail: React.FC<DebtDetailProps> = ({
   f7router
 }) => {
   const isNew = !id;
-  const storedDebt: Debt | null = useStore('currentDebt');
-  // currentDebt may still hold the last debt viewed
-  const debt = isNew ? null : storedDebt;
+  const [debt, setDebt] = useState<Debt | null>(null);
   const contacts: DebtContact[] = useStore('contacts');
+  const debtSource: string = useStore('debtSource');
+  const title = debtSource === 'owner' ? 'cho vay' : 'nợ';
   const [edits, setEdits] = useState<Partial<DebtForm>>({});
 
   useEffect(() => {
@@ -39,21 +43,33 @@ const DebtDetail: React.FC<DebtDetailProps> = ({
 
   useEffect(() => {
     if (!id) return;
-    store.dispatch('getDebt', id).catch((error: unknown) => {
-      console.error('Failed to load debt:', error);
+    debtService.getDebtById(id).then((result) => {
+      setDebt(result);
     });
   }, [id]);
 
   const amount = edits.amount ?? (debt ? String(debt.amount) : '');
-  const contactId = edits.contactId ?? debt?.contact_id ?? '';
-  const dueDay = edits.dueDay ?? (debt?.due_day ?? 0);
+  const contactId = edits.contactId ?? (debtSource === 'owner' ? debt?.debtor_id : debt?.owner_id) ?? '';
+  // null in edits means the user cleared the field, so don't fall back to the saved value
+  const dueDay = edits.dueDay !== undefined ? edits.dueDay : (debt?.due_day ?? null);
   const interestRate = edits.interestRate ?? (debt?.interest_rate != null ? String(debt.interest_rate) : '');
   const isValid = contactId !== ''
     && amount !== '' && Number(amount) > 0
-    && Number.isInteger(dueDay) && dueDay >= 1 && dueDay <= 31
+    && (dueDay === null || (Number.isInteger(dueDay) && dueDay >= 1 && dueDay <= 31))
     && (interestRate === '' || Number(interestRate) >= 0);
+  const auth = useAuth();
+  const userId = auth.user?.id;
+
+  const refreshDebts = async () => {
+    if (debtSource === 'owner') {
+      await store.dispatch('getOwnerDebts', userId);
+    } else {
+      await store.dispatch('getDebtorDebts', userId);
+    }
+  };
 
   const handleSave = async () => {
+    const userContactId = contacts.find(contact => contact.user_id === userId)?.id;
     const data = {
       amount: Number(amount),
       contactId,
@@ -63,15 +79,18 @@ const DebtDetail: React.FC<DebtDetailProps> = ({
     onSave?.(data);
     const payload = {
       amount: data.amount,
-      contact_id: data.contactId,
+      owner_id: debtSource === 'owner' ? userContactId : data.contactId,
+      debtor_id: debtSource === 'debtor' ? userContactId : data.contactId,
       due_day: data.dueDay,
       interest_rate: data.interestRate,
     };
     if (isNew) {
       await store.dispatch('createDebt', payload);
     } else {
-      await store.dispatch('updateDebt', { id, ...payload });
+      await store.dispatch('updateDebt', { id, ownerUserId: debt?.owner?.user_id, ...payload });
     }
+
+    await refreshDebts();
     f7router.back();
   };
 
@@ -82,41 +101,29 @@ const DebtDetail: React.FC<DebtDetailProps> = ({
   };
 
   const handleDelete = () => {
-    f7.dialog.confirm('Bạn có chắc muốn xóa khoản cho vay này?', 'Xóa khoản cho vay', async () => {
+    f7.dialog.confirm(`Bạn có chắc muốn xóa khoản ${title} này?`, `Xóa khoản ${title}`, async () => {
       await store.dispatch('deleteDebt', id);
+      await refreshDebts();
       f7router.back();
     });
   };
 
   return (
     <Page>
-      <Navbar title={isNew ? 'Thêm khoản cho vay' : 'Chi tiết khoản cho vay'} backLink="Quay Lại" />
+      <Navbar title={isNew ? `Thêm khoản ${title}` : `Chi tiết khoản ${title}`} backLink="Quay Lại" />
 
       <List strongIos dividersIos insetIos>
         <ListInput
-          label="Người vay"
+          label={debtSource === 'owner' ? 'Người vay' : 'Chủ nợ'}
           type="select"
           value={contactId}
           onChange={(e) => setEdits((prev) => ({ ...prev, contactId: e.target.value }))}
         >
           <Icon f7="person_crop_circle" slot="media" />
-          <option value="" disabled>Chọn người vay...</option>
-          {contacts.map((contact) => (
+          <option value="" disabled>{debtSource === 'owner' ? 'Chọn người vay...' : 'Chọn chủ nợ...'}</option>
+          {contacts.filter(contact => contact.user_id !== userId).map((contact) => (
             <option key={contact.id} value={contact.id}>{contact.name}</option>
           ))}
-        </ListInput>
-
-        <ListInput
-          label="Ngày thanh toán"
-          type="number"
-          inputmode="numeric"
-          placeholder="1 - 31"
-          min={1}
-          max={31}
-          value={dueDay || ''}
-          onChange={(e) => setEdits((prev) => ({ ...prev, dueDay: Number(e.target.value) }))}
-        >
-          <Icon f7="calendar" slot="media" />
         </ListInput>
 
         <ListInput
@@ -129,6 +136,19 @@ const DebtDetail: React.FC<DebtDetailProps> = ({
           clearButton
         >
           <Icon f7="money_dollar" slot="media" />
+        </ListInput>
+
+        <ListInput
+          label="Ngày thanh toán"
+          type="number"
+          inputmode="numeric"
+          placeholder="1 - 31"
+          min={1}
+          max={31}
+          value={dueDay ?? ''}
+          onChange={(e) => setEdits((prev) => ({ ...prev, dueDay: e.target.value === '' ? null : Number(e.target.value) }))}
+        >
+          <Icon f7="calendar" slot="media" />
         </ListInput>
 
         <ListInput
@@ -148,14 +168,14 @@ const DebtDetail: React.FC<DebtDetailProps> = ({
       <Block>
         <p className="grid grid-row-3 grid-gap">
           <Button onClick={handleSave} fill large roundIos disabled={(!isNew && !debt) || !isValid}>
-            Lưu Khoản Cho Vay
+            Lưu khoản {title}
           </Button>
           <Button onClick={handleCancel} large tonal roundIos>
             Hủy
           </Button>
           {!isNew && (
             <Button onClick={handleDelete} large tonal roundIos color="red" disabled={!debt}>
-              Xóa Khoản Cho Vay
+              Xóa khoản {title}
             </Button>
           )}
         </p>

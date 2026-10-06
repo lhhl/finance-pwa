@@ -17,14 +17,16 @@ interface StoreState {
   currentTransaction: Transaction | null;
   filteredTransactions: Transaction[];
   latestReport: Report | null;
-  debtContacts: DebtContact[];
-  contacts: DebtContact[];
+  ownerDebts: DebtContact[];
+  debtorDebts: DebtContact[];
   debts: Debt[];
-  currentDebt: Debt | null;
+  contacts: DebtContact[];
+  currentContact: DebtContact | null;
   expenseNotes: ExpenseNote[];
   todaySumExpense: number;
   monthSumExpense: number;
   source: string;
+  debtSource: string;
   loading: boolean;
 }
 
@@ -42,14 +44,16 @@ const store = createStore({
     filteredTransactions: [] as Transaction[],
     currentTransaction: null as Transaction | null,
     latestReport: null as Report | null,
-    debtContacts: [] as DebtContact[],
-    contacts: [] as DebtContact[],
+    ownerDebts: [] as DebtContact[],
+    debtorDebts: [] as DebtContact[],
     debts: [] as Debt[],
-    currentDebt: null as Debt | null,
+    contacts: [] as DebtContact[],
+    currentContact: null as DebtContact | null,
     expenseNotes: [] as ExpenseNote[],
     todaySumExpense: 0,
     monthSumExpense: 0,
     source: TRANSACTION_SOURCE.CREDIT_CARD,
+    debtSource: 'owner',
     loading: false,
   },
 
@@ -88,6 +92,9 @@ const store = createStore({
       state.source = source;
       state.filteredTransactions = state.transactions.filter((transaction: Transaction) => transaction.source === state.source);
     },
+    setDebtSource({ state }: { state: StoreState }, debtSource: string) {
+      state.debtSource = debtSource;
+    },
     async getLatestReport({ state }: { state: StoreState }) {
       state.loading = true;
       return reportService.getLatestReport().then((report) => {
@@ -96,10 +103,18 @@ const store = createStore({
         state.loading = false;
       });
     },
-    getDebtContacts({ state }: { state: StoreState }) {
+    getOwnerDebts({ state }: { state: StoreState }, userId: string) {
       state.loading = true;
-      return debtContactService.getDebtByContact().then((debtContacts) => {
-        state.debtContacts = debtContacts;
+      return debtService.getContactDebts('owner', userId).then((debts) => {
+        state.ownerDebts = debts;
+      }).finally(() => {
+        state.loading = false;
+      });
+    },
+    getDebtorDebts({ state }: { state: StoreState }, userId: string) {
+      state.loading = true;
+      return debtService.getContactDebts('debtor', userId).then((debts) => {
+        state.debtorDebts = debts;
       }).finally(() => {
         state.loading = false;
       });
@@ -111,52 +126,41 @@ const store = createStore({
         state.loading = false;
       });
     },
-    getDebts({ state }: { state: StoreState }) {
-      return debtService.getAllDebt().then((debts) => {
-        state.debts = debts;
-      }).finally(() => {
-        state.loading = false;
-      });
-    },
-    getDebt({ state }: { state: StoreState }, id: string | number) {
-      state.currentDebt = null;
+    getContactByUserId({ state }: { state: StoreState }, userId: string) {
       state.loading = true;
-      return debtService.getDebtById(id).then((debt) => {
-        state.currentDebt = debt;
+      return debtContactService.getContactByUserId(userId).then((contact) => {
+        state.currentContact = contact;
+        return contact;
       }).finally(() => {
         state.loading = false;
       });
     },
     async createDebt(
-      { dispatch, state }: { state: StoreState; dispatch: (action: string, data?: unknown) => Promise<unknown> },
+      { state }: { state: StoreState },
       payload: DebtUpdate
     ) {
       state.loading = true;
       await debtService.createDebt(payload).finally(() => {
         state.loading = false;
       });
-      await dispatch('getDebtContacts');
     },
     async updateDebt(
-      { dispatch, state }: { state: StoreState; dispatch: (action: string, data?: unknown) => Promise<unknown> },
-      { id, ...payload }: DebtUpdate & { id: string | number }
+      { state }: { state: StoreState },
+      { id, ownerUserId, ...payload }: DebtUpdate & { id: string | number; ownerUserId?: string }
     ) {
       state.loading = true;
       await debtService.updateDebt(id, payload).finally(() => {
         state.loading = false;
       });
-      await dispatch('getDebtContacts');
     },
     async deleteDebt(
-      { dispatch, state }: { state: StoreState; dispatch: (action: string, data?: unknown) => Promise<unknown> },
+      { state }: { state: StoreState },
       id: string | number
     ) {
       state.loading = true;
       await debtService.deleteDebt(id).finally(() => {
         state.loading = false;
       });
-      state.currentDebt = null;
-      await dispatch('getDebtContacts');
     },
     getExpenseNotes({ state }: { state: StoreState }) {
       state.loading = true;
@@ -204,6 +208,9 @@ const store = createStore({
     source({ state }: { state: StoreState }) {
       return state.source;
     },
+    debtSource({ state }: { state: StoreState }) {
+      return state.debtSource;
+    },
     filteredTransactions({ state }: { state: StoreState }) {
       return state.filteredTransactions;
     },
@@ -220,19 +227,29 @@ const store = createStore({
     latestReport({ state }: { state: StoreState }) {
       return state.latestReport;
     },
-    debtContacts({ state }: { state: StoreState }) {
-      return state.debtContacts;
+    ownerDebts({ state }: { state: StoreState }) {
+      return state.ownerDebts;
+    },
+    debtorDebts({ state }: { state: StoreState }) {
+      return state.debtorDebts;
     },
     contacts({ state }: { state: StoreState }) {
       return state.contacts;
     },
-    currentDebt({ state }: { state: StoreState }) {
-      return state.currentDebt;
+    currentContact({ state }: { state: StoreState }) {
+      return state.currentContact;
     },
-    dueDebts({ state }: { state: StoreState }) {
-      return state.debts
-        .filter((debt: Debt) => debt.untilDueDate <= DEBT_DUE_SOON_DAYS)
-        .sort((a: Debt, b: Debt) => a.untilDueDate - b.untilDueDate);
+    ownerDueDebts({ state }: { state: StoreState }) {
+      const debts = state.ownerDebts.map(contact => contact.debts).flat();
+      return debts
+        .filter((debt: Debt) => debt.untilDueDate != null && debt.untilDueDate <= DEBT_DUE_SOON_DAYS)
+        .sort((a: Debt, b: Debt) => a.untilDueDate! - b.untilDueDate!);
+    },
+    debtorDueDebts({ state }: { state: StoreState }) {
+      const debts = state.debtorDebts.map(contact => contact.debts).flat();
+      return debts
+        .filter((debt: Debt) => debt.untilDueDate != null && debt.untilDueDate <= DEBT_DUE_SOON_DAYS)
+        .sort((a: Debt, b: Debt) => a.untilDueDate! - b.untilDueDate!);
     },
     expenseNotes({ state }: { state: StoreState }) {
       return state.expenseNotes;

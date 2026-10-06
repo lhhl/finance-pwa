@@ -1,5 +1,10 @@
 
-import { Block, Chip, Icon, List, ListItem } from 'framework7-react';
+import { Block, Chip, Icon, List, ListItem, SwipeoutActions, SwipeoutButton } from 'framework7-react';
+
+interface SwipeButton {
+  text?: string;
+  action?: () => void;
+} 
 
 interface AppListItem {
   id: string | number;
@@ -12,7 +17,9 @@ interface AppListItem {
   mediaSize?: number;
   mediaRadius?: boolean;
   badge?: string;
+  badgeColor?: string;
   afterColor?: string;
+  swipeButtons?: SwipeButton[];
 }
 
 interface AppListProps {
@@ -60,6 +67,7 @@ export default function AppList({
             text={item.text}
             noChevron
             onClick={() => onItemClick?.(item)}
+            swipeout
           >
             {item.mediaUrl && (
               <img
@@ -73,7 +81,17 @@ export default function AppList({
             )}
             <span slot="after" style={{ color: item.afterColor || '#7E7E7E', fontWeight: 'bold' }}>{item.after}</span>
             {item.badge && (
-              <Chip slot="after" text={item.badge} color="red" style={{ position: 'absolute', top: 20, right: 0 }} />
+              <Chip slot="after" text={item.badge} color={item.badgeColor || 'red'} style={{ position: 'absolute', top: 20, right: 0 }} />
+            )}
+
+            {(item.swipeButtons && item.swipeButtons.length > 0) && (
+              <SwipeoutActions right>
+                {item.swipeButtons.map((button, index) => (
+                  <SwipeoutButton color='red' key={index} close onClick={button.action}>
+                    {button.text}
+                  </SwipeoutButton>
+                ))}
+              </SwipeoutActions>
             )}
           </ListItem>
         ))}
