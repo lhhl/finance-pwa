@@ -1,4 +1,4 @@
-import { Navbar, Link, Page, Block, useStore, BlockTitle, Toolbar, ToolbarPane } from 'framework7-react';
+import { Navbar, Link, Page, Block, useStore, BlockTitle, Segmented, Button, Icon } from 'framework7-react';
 import { useCallback, useEffect, useMemo } from 'react';
 import type { Transaction } from '../models/Transaction';
 import { formatVND, formatShortDateTime } from '../utils/format';
@@ -47,12 +47,16 @@ const Transactions = () => {
         />
       </Block>
 
-      <Toolbar tabbar position={'bottom'}>
-        <ToolbarPane>
-          <Link tabLink href={false} tabLinkActive={source === TRANSACTION_SOURCE.CREDIT_CARD} onClick={() => store.dispatch('setSource', TRANSACTION_SOURCE.CREDIT_CARD)} iconF7="creditcard_filled" />
-          <Link tabLink href={false} tabLinkActive={source === TRANSACTION_SOURCE.MONEY} onClick={() => store.dispatch('setSource', TRANSACTION_SOURCE.MONEY)} iconF7="money_dollar_circle_filled" />
-        </ToolbarPane>
-      </Toolbar>
+      <Block>
+        <Segmented round tag="p">
+          <Button round outline active={source === TRANSACTION_SOURCE.CREDIT_CARD} onClick={() => store.dispatch('setSource', TRANSACTION_SOURCE.CREDIT_CARD)}>
+            <Icon f7="creditcard_filled" />
+          </Button>
+          <Button round outline active={source === TRANSACTION_SOURCE.MONEY} onClick={() => store.dispatch('setSource', TRANSACTION_SOURCE.MONEY)}>
+            <Icon f7="money_dollar_circle_filled" />
+          </Button>
+        </Segmented>
+      </Block>
 
       <BlockTitle>Danh sách giao dịch</BlockTitle>
       <AppList isMediaList isInset items={transactions?.map(transaction => ({

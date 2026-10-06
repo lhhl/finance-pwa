@@ -1,4 +1,4 @@
-import { Navbar, Link, Page, Block, useStore, PieChart, BlockTitle, Toolbar, ToolbarPane } from 'framework7-react';
+import { Navbar, Link, Page, Block, useStore, PieChart, BlockTitle, Segmented, Button } from 'framework7-react';
 import { useCallback, useEffect } from 'react';
 import type { DebtContact } from '../models/DebtContact';
 import { formatVND } from '../utils/format';
@@ -46,6 +46,13 @@ const Debts = ({ f7route }: { f7route?: { query: Record<string, string> } }) => 
         <Link slot="right" iconF7='plus' href="/debts/new/"></Link>
       </Navbar>
 
+      <Block>
+        <Segmented tag="p" round>
+          <Button round outline active={debtSource === 'owner'} onClick={() => setDebtSource('owner')}>Khoản cho vay</Button>
+          <Button round outline active={debtSource === 'debtor'} onClick={() => setDebtSource('debtor')}>Khoản nợ</Button>
+        </Segmented>
+      </Block>
+
       <Block strong inset>
         <div style={{ width: '50%', margin: '0 auto', fontSize: '12px' }}>
           <PieChart
@@ -83,13 +90,6 @@ const Debts = ({ f7route }: { f7route?: { query: Record<string, string> } }) => 
             }))} />,
           }]} />
       ))}
-
-      <Toolbar tabbar position={'bottom'}>
-        <ToolbarPane>
-          <Link tabLink href={false} tabLinkActive={debtSource === 'owner'} onClick={() => setDebtSource('owner')} text='Khoản cho vay' />
-          <Link tabLink href={false} tabLinkActive={debtSource === 'debtor'} onClick={() => setDebtSource('debtor')} text='Khoản nợ' />
-        </ToolbarPane>
-      </Toolbar>
 
     </Page>
   );

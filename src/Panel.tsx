@@ -1,4 +1,4 @@
-import { Panel, ListItem, List, Icon, BlockTitle } from 'framework7-react';
+import { Panel, ListItem, List, Icon, BlockTitle, f7 } from 'framework7-react';
 import { supabase } from './supabaseClient';
 import { useAuth } from './auth/AuthContext';
 
@@ -29,6 +29,28 @@ const MENU_ITEMS = [
   }
 ];
 
+const refreshApp = async () => {
+  if (!navigator.onLine) {
+    f7.dialog.alert('Cần kết nối mạng để cập nhật ứng dụng');
+    return;
+  }
+  f7.preloader.show();
+  try {
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.unregister()));
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((key) => caches.delete(key)));
+    }
+    window.location.reload();
+  } catch (error) {
+    f7.preloader.hide();
+    f7.dialog.alert(`Không thể cập nhật: ${error instanceof Error ? error.message : error}`);
+  }
+};
+
 const AppPanel = () => {
   const { user } = useAuth();
   const displayName = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? user?.email ?? '';
@@ -45,10 +67,16 @@ const AppPanel = () => {
       ))}
       </List>
       <List dividersIos style={{ marginTop: 'auto' }}>
+        <ListItem noChevron panelClose link="#" title="Cập nhật ứng dụng" onClick={refreshApp}>
+          <Icon f7="arrow_clockwise" slot="media" />
+        </ListItem>
         <ListItem noChevron panelClose link="#" title="Đăng xuất" onClick={() => supabase.auth.signOut()}>
           <Icon f7="square_arrow_right" slot="media" />
         </ListItem>
       </List>
+      <div className="text-align-center" style={{ fontSize: '12px', color: '#8e8e93', marginBottom: '16px' }}>
+        Phiên bản: {__APP_VERSION__}
+      </div>
     </div>
   </Panel>
   );

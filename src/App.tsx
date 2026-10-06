@@ -14,10 +14,6 @@ import { useAuth } from './auth/AuthContext.ts';
 const f7params: Parameters<typeof App>[0] = {
   name: 'Quản Lý Chi Tiêu',
   theme: 'ios',
-  // Android reports finger jitter as touchmove; F7's default 5px cancels slower taps.
-  touch: {
-    touchClicksDistanceThreshold: 15,
-  },
   store,
   routes: [
     {
