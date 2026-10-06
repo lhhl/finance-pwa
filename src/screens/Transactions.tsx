@@ -49,8 +49,8 @@ const Transactions = () => {
 
       <Toolbar tabbar position={'bottom'}>
         <ToolbarPane>
-          <Link tabLink="#tab-1" tabLinkActive={source === TRANSACTION_SOURCE.CREDIT_CARD} onClick={() => store.dispatch('setSource', TRANSACTION_SOURCE.CREDIT_CARD)} iconF7="creditcard_filled" />
-          <Link tabLink="#tab-2" tabLinkActive={source === TRANSACTION_SOURCE.MONEY} onClick={() => store.dispatch('setSource', TRANSACTION_SOURCE.MONEY)} iconF7="money_dollar_circle_filled" />
+          <Link tabLink href={false} tabLinkActive={source === TRANSACTION_SOURCE.CREDIT_CARD} onClick={() => store.dispatch('setSource', TRANSACTION_SOURCE.CREDIT_CARD)} iconF7="creditcard_filled" />
+          <Link tabLink href={false} tabLinkActive={source === TRANSACTION_SOURCE.MONEY} onClick={() => store.dispatch('setSource', TRANSACTION_SOURCE.MONEY)} iconF7="money_dollar_circle_filled" />
         </ToolbarPane>
       </Toolbar>
 

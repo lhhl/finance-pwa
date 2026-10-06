@@ -146,7 +146,7 @@ const store = createStore({
     },
     async updateDebt(
       { state }: { state: StoreState },
-      { id, ownerUserId, ...payload }: DebtUpdate & { id: string | number; ownerUserId?: string }
+      { id, ...payload }: DebtUpdate & { id: string | number; }
     ) {
       state.loading = true;
       await debtService.updateDebt(id, payload).finally(() => {

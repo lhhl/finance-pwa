@@ -86,8 +86,8 @@ const Debts = ({ f7route }: { f7route?: { query: Record<string, string> } }) => 
 
       <Toolbar tabbar position={'bottom'}>
         <ToolbarPane>
-          <Link tabLink="#tab-1" tabLinkActive={debtSource === 'owner'} onClick={() => setDebtSource('owner')} text='Khoản cho vay' />
-          <Link tabLink="#tab-2" tabLinkActive={debtSource === 'debtor'} onClick={() => setDebtSource('debtor')} text='Khoản nợ' />
+          <Link tabLink href={false} tabLinkActive={debtSource === 'owner'} onClick={() => setDebtSource('owner')} text='Khoản cho vay' />
+          <Link tabLink href={false} tabLinkActive={debtSource === 'debtor'} onClick={() => setDebtSource('debtor')} text='Khoản nợ' />
         </ToolbarPane>
       </Toolbar>
 

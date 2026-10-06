@@ -8,22 +8,23 @@ Framework7.use(Framework7React);
 import MyApp from './App.tsx'
 import './index.css'
 
-import { registerServiceWorker, setupOnlineStatusListener } from './serviceWorkerRegister'
+import { registerSW } from 'virtual:pwa-register'
 
-// Register service worker for offline support
-registerServiceWorker()
-
-// Setup online/offline status listeners
-setupOnlineStatusListener(
-  () => {
-    // App came online
-    console.log('App regained internet connection')
+registerSW({
+  immediate: true,
+  onRegisteredSW(_swUrl, registration) {
+    if (!registration) return
+    const check = () => {
+      if (navigator.onLine) registration.update()
+    }
+    setInterval(check, 60 * 60 * 1000)
+    // Installed Android PWAs resume from background without a page load.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') check()
+    })
+    window.addEventListener('online', check)
   },
-  () => {
-    // App went offline
-    console.log('App lost internet connection - offline mode activated')
-  }
-)
+})
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

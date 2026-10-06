@@ -13,7 +13,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-
+      injectRegister: false,
       includeAssets: ['favicon.svg', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
         name: 'Finance PWA',
@@ -70,8 +70,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2,webp}'],
-        skipWaiting: true, // Immediately activate new service worker
-        clientsClaim: true, // Immediately claim clients
+        cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
         runtimeCaching: [
           {
@@ -84,12 +83,7 @@ export default defineConfig({
                 maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
               }
             }
-          },
-          {
-            urlPattern: ({ url }) =>
-              url.hostname.endsWith('supabase.co'),
-            handler: 'NetworkOnly',
-          },
+          }
         ]
       }
     })
