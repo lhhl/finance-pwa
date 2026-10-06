@@ -48,12 +48,12 @@ const Transactions = () => {
       </Block>
 
       <Block>
-        <Segmented round tag="p">
-          <Button round outline active={source === TRANSACTION_SOURCE.CREDIT_CARD} onClick={() => store.dispatch('setSource', TRANSACTION_SOURCE.CREDIT_CARD)}>
-            <Icon f7="creditcard_filled" />
+        <Segmented strong round>
+          <Button smallMd active={source === TRANSACTION_SOURCE.CREDIT_CARD} onClick={() => store.dispatch('setSource', TRANSACTION_SOURCE.CREDIT_CARD)}>
+            <Icon f7="creditcard_filled" slot="text" />
           </Button>
-          <Button round outline active={source === TRANSACTION_SOURCE.MONEY} onClick={() => store.dispatch('setSource', TRANSACTION_SOURCE.MONEY)}>
-            <Icon f7="money_dollar_circle_filled" />
+          <Button smallMd active={source === TRANSACTION_SOURCE.MONEY} onClick={() => store.dispatch('setSource', TRANSACTION_SOURCE.MONEY)}>
+            <Icon f7="money_dollar_circle_filled" slot="text" />
           </Button>
         </Segmented>
       </Block>

@@ -46,13 +46,6 @@ const Debts = ({ f7route }: { f7route?: { query: Record<string, string> } }) => 
         <Link slot="right" iconF7='plus' href="/debts/new/"></Link>
       </Navbar>
 
-      <Block>
-        <Segmented tag="p" round>
-          <Button round outline active={debtSource === 'owner'} onClick={() => setDebtSource('owner')}>Khoản cho vay</Button>
-          <Button round outline active={debtSource === 'debtor'} onClick={() => setDebtSource('debtor')}>Khoản nợ</Button>
-        </Segmented>
-      </Block>
-
       <Block strong inset>
         <div style={{ width: '50%', margin: '0 auto', fontSize: '12px' }}>
           <PieChart
@@ -71,6 +64,12 @@ const Debts = ({ f7route }: { f7route?: { query: Record<string, string> } }) => 
           </div>
         </div>
       <BlockTitle textColor='black' className='text-align-center'>Tổng cho vay: {formatVND(total)}</BlockTitle>
+      </Block>
+      <Block>
+        <Segmented strong round>
+          <Button round active={debtSource === 'owner'} onClick={() => setDebtSource('owner')}>Khoản cho vay</Button>
+          <Button round active={debtSource === 'debtor'} onClick={() => setDebtSource('debtor')}>Khoản nợ</Button>
+        </Segmented>
       </Block>
 
       {(debtSource === 'owner' ? ownerDebts : debtorDebts).filter((contact) => contact.debts.length > 0).map((contact) => (
