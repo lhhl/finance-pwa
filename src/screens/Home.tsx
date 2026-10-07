@@ -1,4 +1,5 @@
-import { Navbar, Link, Page, Block, useStore, BlockTitle, f7, Card, CardContent, CardHeader, Button } from 'framework7-react';
+import { Navbar, Link, Page, Block, useStore, BlockTitle, f7, Card, CardContent, CardHeader, Button, Badge, Treeview, TreeviewItem } from 'framework7-react';
+import type { Report } from '../models/Report';
 import { useCallback, useEffect, useMemo } from 'react';
 import store from '../store';
 import { formatVND } from '../utils/format';
@@ -14,6 +15,7 @@ const Home = () => {
   const transactionTotal: number = useStore('transactionTotal');
   const ownerDebts: Debt[] = useStore('ownerDueDebts');
   const debtorDebts: Debt[] = useStore('debtorDueDebts');
+  const latestReport: Report | null = useStore('latestReport');
   const shopeeLimit: number = 4000000;
   const gaugeValue: number = useMemo(() => {
     return Math.min(shopeeTotal, shopeeLimit) / shopeeLimit;
@@ -21,11 +23,11 @@ const Home = () => {
   const auth = useAuth();
   const userId = auth.user?.id;
 
-  const loadTransaction = useCallback((done?: () => void) => {
+  const loadTransaction = useCallback(() => {
     store.dispatch('getTodaySum', null);
     store.dispatch('getMonthSum', null);
     store.dispatch('getTransactions', null);
-    if (done) done();
+    store.dispatch('getLatestReport', false);
   }, []);
 
   const openPrompt = () => {
@@ -78,9 +80,9 @@ const Home = () => {
             title: `${(debt.debtor?.name || '')}`,
             subtitle: debt.dueDateStatus,
             after: formatVND(debt.amount),
-            text: `Phí: ${debt.interest_rate}%`,
+            text: `Phí: ${debt.interestRate}%`,
             link: `/debts/?source=owner`,
-            badge: formatVND(debt.amount * debt.interest_rate / 100),
+            badge: formatVND(debt.amount * debt.interestRate / 100),
             badgeColor: debt.feePaidDateStatus ? 'green' : 'red',
             swipeButtons: debt.feePaidDateStatus ? [] : [
               {
@@ -104,9 +106,9 @@ const Home = () => {
             title: `${(debt.owner?.name || '')}`,
             subtitle: debt.dueDateStatus,
             after: formatVND(debt.amount),
-            text: `Phí: ${debt.interest_rate}%`,
+            text: `Phí: ${debt.interestRate}%`,
             link: `/debts/?source=debtor`,
-            badge: formatVND(debt.amount * debt.interest_rate / 100),
+            badge: formatVND(debt.amount * debt.interestRate / 100),
             badgeColor: debt.feePaidDateStatus ? 'green' : 'red',
             swipeButtons: debt.feePaidDateStatus ? [] : [
               {
@@ -121,10 +123,26 @@ const Home = () => {
         </>
       )}
 
+      {(latestReport && !latestReport.viewed) && (
+        <div onClick={() => f7.views.main.router.navigate('/reports/')}>
+          <BlockTitle>Báo cáo</BlockTitle>
+          <Block strong inset outline>
+            <BlockTitle medium textColor="black">{latestReport.name}</BlockTitle>
+            <Treeview>
+              <TreeviewItem label={formatVND(latestReport.amount || 0)} iconF7="chart_pie_fill">
+                <TreeviewItem label={formatVND(latestReport.cardAmount || 0)} iconF7="creditcard_fill" />
+                <TreeviewItem label={formatVND(latestReport.cashAmount || 0)} iconF7="money_dollar_circle_fill" />
+              </TreeviewItem>
+            </Treeview>
+            <Badge style={{ position: 'absolute', right: -10, top: -5, padding: '4px 8px' }} color="red">Mới</Badge>
+          </Block>
+        </div>
+      )}
+
       <div onClick={() => f7.views.main.router.navigate('/transactions/')}>
         <BlockTitle>Chi tiêu</BlockTitle>
         <Block inset strong outline className="text-align-center">
-          <BlockTitle large textColor="black">Đã chi tiêu: {formatVND(transactionTotal)}</BlockTitle>
+          <BlockTitle medium textColor="black">Đã chi tiêu: {formatVND(transactionTotal)}</BlockTitle>
           <Gauge
             type="circle"
             value={gaugeValue}

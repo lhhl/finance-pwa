@@ -49,10 +49,10 @@ const DebtDetail: React.FC<DebtDetailProps> = ({
   }, [id]);
 
   const amount = edits.amount ?? (debt ? String(debt.amount) : '');
-  const contactId = edits.contactId ?? (debtSource === 'owner' ? debt?.debtor_id : debt?.owner_id) ?? '';
+  const contactId = edits.contactId ?? (debtSource === 'owner' ? debt?.debtorId : debt?.ownerId) ?? '';
   // null in edits means the user cleared the field, so don't fall back to the saved value
-  const dueDay = edits.dueDay !== undefined ? edits.dueDay : (debt?.due_day ?? null);
-  const interestRate = edits.interestRate ?? (debt?.interest_rate != null ? String(debt.interest_rate) : '');
+  const dueDay = edits.dueDay !== undefined ? edits.dueDay : (debt?.dueDay ?? null);
+  const interestRate = edits.interestRate ?? (debt?.interestRate != null ? String(debt.interestRate) : '');
   const isValid = contactId !== ''
     && amount !== '' && Number(amount) > 0
     && (dueDay === null || (Number.isInteger(dueDay) && dueDay >= 1 && dueDay <= 31))
@@ -69,7 +69,7 @@ const DebtDetail: React.FC<DebtDetailProps> = ({
   };
 
   const handleSave = async () => {
-    const userContactId = contacts.find(contact => contact.user_id === userId)?.id;
+    const userContactId = contacts.find(contact => contact.userId === userId)?.id;
     const data = {
       amount: Number(amount),
       contactId,
@@ -87,7 +87,7 @@ const DebtDetail: React.FC<DebtDetailProps> = ({
     if (isNew) {
       await store.dispatch('createDebt', payload);
     } else {
-      await store.dispatch('updateDebt', { id, ownerUserId: debt?.owner?.user_id, ...payload });
+      await store.dispatch('updateDebt', { id, ownerUserId: debt?.owner?.userId, ...payload });
     }
 
     await refreshDebts();
@@ -121,7 +121,7 @@ const DebtDetail: React.FC<DebtDetailProps> = ({
         >
           <Icon f7="person_crop_circle" slot="media" />
           <option value="" disabled>{debtSource === 'owner' ? 'Chọn người vay...' : 'Chọn chủ nợ...'}</option>
-          {contacts.filter(contact => contact.user_id !== userId).map((contact) => (
+          {contacts.filter(contact => contact.userId !== userId).map((contact) => (
             <option key={contact.id} value={contact.id}>{contact.name}</option>
           ))}
         </ListInput>

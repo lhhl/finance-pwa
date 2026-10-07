@@ -15,9 +15,10 @@ export class Report {
   isCashClosed: boolean;
   isCreditCardClosed: boolean;
   transactions: Transaction[];
+  viewed: boolean;
 
   constructor(report: Report) {
-    const { id, amount, cashAmount, cardAmount, deduction, createdAt, isCashClosed, isCreditCardClosed, transactions } = report;
+    const { id, amount, cashAmount, cardAmount, deduction, createdAt, isCashClosed, isCreditCardClosed, transactions, viewed } = report;
     this.id = id;
     this.amount = amount;
     this.cashAmount = cashAmount;
@@ -27,6 +28,7 @@ export class Report {
     this.isCashClosed = isCashClosed;
     this.isCreditCardClosed = isCreditCardClosed;
     this.transactions = transactions?.map(t => new Transaction(t)) || [];
+    this.viewed = viewed;
   }
 
   get transactionsByCategory(): TransactionsByCategory {

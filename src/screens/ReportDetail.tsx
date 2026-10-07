@@ -17,6 +17,12 @@ const ReportDetail = () => {
     loadReport();
   }, [loadReport]);
 
+  useEffect(() => {
+    if (report && !report.viewed) {
+      store.dispatch('updateReport', { id: report.id, viewed: true });
+    }
+  }, [report]);
+
   return (
     <Page id="report-detail-page">
       <Navbar title="Báo cáo">
@@ -67,7 +73,7 @@ const ReportDetail = () => {
             title: name,
             mediaUrl: transactions[0]?.category?.iconUrl,
             after: formatVND(transactions.reduce((sum, t) => sum + t.amount, 0)),
-            content: <AppList items={transactions.map(t => ({ id: t.id, title: `- ${t.description || t.originalContent}`, after: formatVND(t.amount) }))} />,
+            content: <AppList items={transactions.map(t => ({ id: t.id, title: `- ${t.description || t.originalContent}`, after: formatVND(t.amount), afterReplace: t.afterDeductedAmount !== null ? formatVND(t.afterDeductedAmount) : undefined }))} />,
           }]} />
       ))}
 

@@ -95,9 +95,20 @@ const store = createStore({
     setDebtSource({ state }: { state: StoreState }, debtSource: string) {
       state.debtSource = debtSource;
     },
-    async getLatestReport({ state }: { state: StoreState }) {
+    async getLatestReport({ state }: { state: StoreState }, includeTransactions: boolean = true) {
       state.loading = true;
-      return reportService.getLatestReport().then((report) => {
+      return reportService.getLatestReport(includeTransactions).then((report) => {
+        state.latestReport = report;
+      }).finally(() => {
+        state.loading = false;
+      });
+    },
+    async updateReport(
+      { state }: { state: StoreState },
+      { id, ...updates }: Partial<Omit<Report, 'id' | 'createdAt' | 'transactions'>> & { id: string }
+    ) {
+      state.loading = true;
+      return reportService.updateReport(id, updates).then((report) => {
         state.latestReport = report;
       }).finally(() => {
         state.loading = false;
@@ -223,6 +234,9 @@ const store = createStore({
     shopeeTotal({ state }: { state: StoreState }) {
       return state.transactions.filter((transaction: Transaction) => transaction.category?.name === 'Shopee')
         .reduce((total: number, transaction: Transaction) => total + transaction.amount, 0);
+    },
+    deductedTotal({ state }: { state: StoreState }) {
+      return state.filteredTransactions.reduce((total: number, transaction: Transaction) => total + (transaction.deductedAmount || 0), 0);
     },
     latestReport({ state }: { state: StoreState }) {
       return state.latestReport;

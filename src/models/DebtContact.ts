@@ -4,14 +4,14 @@ import { DEBT_DUE_SOON_DAYS } from "../constants";
 export class DebtContact {
   id: string;
   name: string;
-  user_id: string;
+  userId: string;
   debts: Debt[]
 
   constructor(debtContact: Omit<DebtContact, 'totalAmount' | 'hasDueDebts'>) {
-    const { id, name, user_id, debts } = debtContact;
+    const { id, name, userId, debts } = debtContact;
     this.id = id;
     this.name = name;
-    this.user_id = user_id;
+    this.userId = userId;
     this.debts = (debts || []).map((debt) => new Debt(debt));
   }
 

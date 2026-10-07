@@ -20,6 +20,7 @@ interface AppListItem {
   badgeColor?: string;
   afterColor?: string;
   swipeButtons?: SwipeButton[];
+  afterReplace?: string;
 }
 
 interface AppListProps {
@@ -79,7 +80,10 @@ export default function AppList({
                 width={item.mediaSize || mediaSize}
               />
             )}
-            <span slot="after" style={{ color: item.afterColor || '#7E7E7E', fontWeight: 'bold' }}>{item.after}</span>
+            <span slot="after" style={{ color: item.afterColor || '#7E7E7E', textDecoration: item.afterReplace ? 'line-through' : 'none' }}>{item.after}</span>
+            {item.afterReplace && (
+              <span slot="after" style={{ color: item.afterColor || '#7E7E7E', display: 'block', marginLeft: '8px' }}>{item.afterReplace}</span>
+            )}
             {item.badge && (
               <Chip slot="after" text={item.badge} color={item.badgeColor || 'red'} style={{ position: 'absolute', top: 20, right: 0 }} />
             )}

@@ -5,31 +5,31 @@ import { DEBT_DUE_SOON_DAYS } from "../constants";
 export class Debt {
   id: string;
   amount: number;
-  created_at: Date;
-  fee_paid_date: Date | null;
-  owner_id: string;
-  debtor_id: string;
+  createdAt: Date;
+  feePaidDate: Date | null;
+  ownerId: string;
+  debtorId: string;
   owner?: DebtContact;
   debtor?: DebtContact;
-  due_day: number | null;
-  interest_rate: number;
+  dueDay: number | null;
+  interestRate: number;
 
   constructor(debt: Debt) {
-    const { id, amount, created_at, fee_paid_date, owner_id, debtor_id, owner, debtor, due_day, interest_rate } = debt;
+    const { id, amount, createdAt, feePaidDate, ownerId, debtorId, owner, debtor, dueDay, interestRate } = debt;
     this.id = id;
     this.amount = amount;
-    this.created_at = new Date(created_at);
-    this.fee_paid_date = fee_paid_date ? new Date(fee_paid_date) : null;
-    this.owner_id = owner_id;
-    this.debtor_id = debtor_id;
+    this.createdAt = new Date(createdAt);
+    this.feePaidDate = feePaidDate ? new Date(feePaidDate) : null;
+    this.ownerId = ownerId;
+    this.debtorId = debtorId;
     this.owner = owner ? new DebtContact(owner) : undefined;
     this.debtor = debtor ? new DebtContact(debtor) : undefined;
-    this.due_day = due_day;
-    this.interest_rate = interest_rate;
+    this.dueDay = dueDay;
+    this.interestRate = interestRate;
   }
 
   get dueDate(): Date | null {
-    return this.due_day == null ? null : calculateDueDate(this.due_day);
+    return this.dueDay == null ? null : calculateDueDate(this.dueDay);
   }
 
   get untilDueDate(): number | null {
@@ -37,10 +37,10 @@ export class Debt {
   }
 
   get feePaidDateStatus(): boolean {
-    if (!this.fee_paid_date || !this.dueDate) return false;
+    if (!this.feePaidDate || !this.dueDate) return false;
     const windowStart = new Date(this.dueDate);
     windowStart.setDate(windowStart.getDate() - DEBT_DUE_SOON_DAYS);
-    return this.fee_paid_date.getTime() >= windowStart.getTime();
+    return this.feePaidDate.getTime() >= windowStart.getTime();
   }
 
   get dueDateStatus(): string {

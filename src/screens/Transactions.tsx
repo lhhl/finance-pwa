@@ -11,6 +11,7 @@ const Transactions = () => {
   const transactions: Transaction[] = useStore('filteredTransactions');
   const source: string = useStore('source');
   const shopeeTotal: number = useStore('shopeeTotal');
+  const deductedTotal: number = useStore('deductedTotal');
   const transactionTotal: number = useStore('transactionTotal');
   const shopeeLimit: number = 4000000;
   const gaugeValue: number = useMemo(() => {
@@ -33,18 +34,19 @@ const Transactions = () => {
       </Navbar>
       <BlockTitle>Tổng quan</BlockTitle>
       <Block inset strong outline className="text-align-center">
-        <BlockTitle large textColor="black">Chi tiêu: {formatVND(transactionTotal)}</BlockTitle>
         <Gauge
           type="semicircle"
           value={gaugeValue}
           size={250}
           borderColor="#F05F10"
-          borderWidth={15}
+          borderWidth={20}
           valueText={`${formatVND(shopeeTotal)}`}
           valueFontSize={20}
           valueTextColor="#F05F10"
           labelText="được hoàn tiền Shopee"
         />
+        <BlockTitle large textColor="black">Tổng chi tiêu: <span style={{ color: '#D90016' }}>{formatVND(transactionTotal)}</span></BlockTitle>
+        <div>Khấu trừ: <span style={{ color: '#00BB16', fontWeight: 'bold' }}>{formatVND(deductedTotal)}</span></div>
       </Block>
 
       <Block>
@@ -67,6 +69,7 @@ const Transactions = () => {
         after: formatVND(transaction.amount || 0),
         afterColor: transaction.amount > 0 ? '#D90016' : '#00BB16',
         link: `/transactions/${transaction.id}/`,
+        afterReplace: transaction.afterDeductedAmount !== null ? formatVND(transaction.afterDeductedAmount) : undefined,
         mediaUrl: transaction.category?.iconUrl
       }))} />
 

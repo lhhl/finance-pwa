@@ -10,17 +10,16 @@ export class ReportService extends BaseSupabaseService {
 
   /**
    * Fetch the latest report where both cash and credit card are closed
+   * @param includeTransactions - Whether to populate transactions relationship (default: true)
    */
-  async getLatestReport(): Promise<Report | null> {
+  async getLatestReport(includeTransactions: boolean = true): Promise<Report | null> {
+    const selectQuery = includeTransactions
+      ? '*, transactions (*, category:catId (id, name, icon))'
+      : '*';
+
     const { data, error } = await this.supabase
       .from(this.tableName)
-      .select(`
-        *,
-        transactions (
-          *,
-          category:catId (id, name, icon)
-        )
-      `)
+      .select(selectQuery)
       .is('isCreditCardClosed', true)
       .is('isCashClosed', true)
       .order('createdAt', { ascending: false })
@@ -33,6 +32,19 @@ export class ReportService extends BaseSupabaseService {
 
     if (!data) return null;
 
+    return new Report(data as any);
+  }
+
+  /**
+   * Update an existing report
+   * @param id - The ID of the report to update
+   * @param updates - Partial report data to update
+   */
+  async updateReport(
+    id: string,
+    updates: Partial<Omit<Report, 'id' | 'createdAt' | 'transactions'>>
+  ): Promise<Report> {
+    const data = await super.update<Report>(id, updates);
     return new Report(data);
   }
 }
