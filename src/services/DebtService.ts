@@ -18,39 +18,12 @@ export class DebtService extends BaseSupabaseService {
   protected tableName: string = 'debts';
 
   /**
-   * Fetch the latest debt where both cash and credit card are closed
-   */
-  async getDebtsBy(field: string, value: string): Promise<Debt[]> {
-    const { data, error } = await this.supabase
-      .from(this.tableName)
-      .select(`
-        *,
-        owner:owner_id (
-          name,
-          user_id
-        ),
-        debtor:debtor_id (
-          name,
-          user_id
-        )
-      `).eq(field, value);
-
-    if (error) {
-      throw new Error(`Failed to fetch from ${this.tableName}: ${error.message}`);
-    }
-
-    if (!data) return [];
-
-    return data.map((debt) => new Debt(debt));
-  }
-
-  /**
    * Fetch debts where the owner or debtor contact belongs to the given auth user
    */
   async getDebtsByUser(role: 'owner' | 'debtor', userId: string): Promise<Debt[]> {
     // !inner turns the embed into an inner join so the filter on it drops non-matching debts
-    const ownerJoin = role === 'owner' ? 'owner_id!inner' : 'owner_id';
-    const debtorJoin = role === 'debtor' ? 'debtor_id!inner' : 'debtor_id';
+    const ownerJoin = role === 'owner' ? 'ownerId!inner' : 'ownerId';
+    const debtorJoin = role === 'debtor' ? 'debtorId!inner' : 'debtorId';
 
     const { data, error } = await this.supabase
       .from(this.tableName)
@@ -59,15 +32,15 @@ export class DebtService extends BaseSupabaseService {
         owner:${ownerJoin} (
           id,
           name,
-          user_id
+          userId
         ),
         debtor:${debtorJoin} (
           id,
           name,
-          user_id
+          userId
         )
       `)
-      .eq(`${role}.user_id`, userId);
+      .eq(`${role}.userId`, userId);
 
     if (error) {
       throw new Error(`Failed to fetch from ${this.tableName}: ${error.message}`);
@@ -83,13 +56,13 @@ export class DebtService extends BaseSupabaseService {
       .from(this.tableName)
       .select(`
         *,
-        owner:owner_id (
+        owner:ownerId (
           name,
-          user_id
+          userId
         ),
-        debtor:debtor_id (
+        debtor:debtorId (
           name,
-          user_id
+          userId
         )
       `)
       .eq('id', id)

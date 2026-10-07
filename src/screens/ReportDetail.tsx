@@ -10,7 +10,7 @@ const ReportDetail = () => {
   const report: Report | null = useStore('latestReport');
 
   const loadReport = useCallback(() => {
-    store.dispatch('getLatestReport', null);
+    store.dispatch('getLatestReport', true);
   }, []);
 
   useEffect(() => {

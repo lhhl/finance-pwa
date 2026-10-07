@@ -47,13 +47,13 @@ export default function AppAccordion({
                 style={{
                   borderRadius: '4px',
                 }}
-                width={'20'}
-                height={'20'}
+                width={'30'}
+                height={'30'}
               />
             ) : item.icon ? (
-              <Icon size="20" slot="media" f7={item.icon} />
+              <Icon size="30" slot="media" f7={item.icon} />
             ) : (
-              <Icon size="20" slot="media" f7="question_circle" />
+              <Icon size="30" slot="media" f7="question_circle" />
             )}
             <AccordionContent>{item.content}</AccordionContent>
           </ListItem>

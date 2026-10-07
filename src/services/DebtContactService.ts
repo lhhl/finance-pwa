@@ -52,7 +52,7 @@ export class DebtContactService extends BaseSupabaseService {
     const { data, error } = await this.supabase
       .from(this.tableName)
       .select(`*`)
-      .eq('user_id', userId)
+      .eq('userId', userId)
       .maybeSingle();
 
     if (error) {
