@@ -25,7 +25,6 @@ export class Transaction {
   }
 
   get afterDeductedAmount(): number | null {
-    console.log(this.deductedAmount);
     if (this.deductedAmount <= 0) {
       return null;
     }

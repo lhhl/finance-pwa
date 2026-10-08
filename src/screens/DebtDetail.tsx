@@ -10,7 +10,7 @@ const debtService = new DebtService();
 
 interface DebtDetailProps {
   id?: string | number;
-  onSave?: (data: { amount: number; contactId: string; dueDay: number | null; interestRate: number }) => void;
+  onSave?: (data: { amount: number; ownerId: string | undefined; debtorId: string | undefined; dueDay: number | null; interestRate: number }) => void;
   onCancel?: () => void;
   f7router: { back: () => void };
 }
@@ -72,22 +72,16 @@ const DebtDetail: React.FC<DebtDetailProps> = ({
     const userContactId = contacts.find(contact => contact.userId === userId)?.id;
     const data = {
       amount: Number(amount),
-      contactId,
+      ownerId: debtSource === 'owner' ? userContactId : contactId,
+      debtorId: debtSource === 'debtor' ? userContactId : contactId,
       dueDay,
       interestRate: Number(interestRate || 0),
     };
     onSave?.(data);
-    const payload = {
-      amount: data.amount,
-      owner_id: debtSource === 'owner' ? userContactId : data.contactId,
-      debtor_id: debtSource === 'debtor' ? userContactId : data.contactId,
-      due_day: data.dueDay,
-      interest_rate: data.interestRate,
-    };
     if (isNew) {
-      await store.dispatch('createDebt', payload);
+      await store.dispatch('createDebt', data);
     } else {
-      await store.dispatch('updateDebt', { id, ownerUserId: debt?.owner?.userId, ...payload });
+      await store.dispatch('updateDebt', { id, ...data });
     }
 
     await refreshDebts();

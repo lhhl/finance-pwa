@@ -3,7 +3,7 @@ import { createStore } from 'framework7/lite';
 import { TransactionService } from './services/TransactionService';
 import { ReportService } from './services/ReportService';
 import { DebtContactService } from './services/DebtContactService';
-import { DebtService, type DebtUpdate } from './services/DebtService';
+import { DebtService, type DebtPayload } from './services/DebtService';
 import { ExpenseNoteService } from './services/ExpenseNoteService';
 import { Transaction } from './models/Transaction';
 import { Report } from './models/Report';
@@ -148,7 +148,7 @@ const store = createStore({
     },
     async createDebt(
       { state }: { state: StoreState },
-      payload: DebtUpdate
+      payload: DebtPayload
     ) {
       state.loading = true;
       await debtService.createDebt(payload).finally(() => {
@@ -157,7 +157,7 @@ const store = createStore({
     },
     async updateDebt(
       { state }: { state: StoreState },
-      { id, ...payload }: DebtUpdate & { id: string | number; }
+      { id, ...payload }: DebtPayload & { id: string | number; }
     ) {
       state.loading = true;
       await debtService.updateDebt(id, payload).finally(() => {

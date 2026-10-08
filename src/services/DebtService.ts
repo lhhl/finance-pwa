@@ -2,12 +2,12 @@ import { BaseSupabaseService } from './BaseSupabaseService';
 import { Debt } from '../models/Debt';
 import { DebtContact } from '../models/DebtContact';
 
-export interface DebtUpdate {
+export interface DebtPayload {
   amount: number;
-  debtor_id: string;
-  owner_id: string;
-  due_day: number | null;
-  interest_rate: number;
+  debtorId: string;
+  ownerId: string;
+  dueDay: number | null;
+  interestRate: number;
 }
 
 /**
@@ -75,12 +75,12 @@ export class DebtService extends BaseSupabaseService {
     return data ? new Debt(data) : null;
   }
 
-  async createDebt(payload: DebtUpdate): Promise<DebtUpdate> {
-    return this.create<DebtUpdate>(payload);
+  async createDebt(payload: DebtPayload): Promise<DebtPayload> {
+    return this.create<DebtPayload>(payload);
   }
 
-  async updateDebt(id: string | number, payload: DebtUpdate): Promise<DebtUpdate> {
-    return this.update<DebtUpdate>(id, payload);
+  async updateDebt(id: string | number, payload: DebtPayload): Promise<DebtPayload> {
+    return this.update<DebtPayload>(id, payload);
   }
 
   async deleteDebt(id: string | number): Promise<void> {
@@ -95,7 +95,6 @@ export class DebtService extends BaseSupabaseService {
     const allDebts = await this.getDebtsByUser(role, userId);
     const debtMap = new Map<string, DebtContact>();
     const mapKey = role === 'owner' ? 'debtor' : 'owner';
-    console.log(allDebts);
 
     allDebts.forEach((debt) => {
       const contact = debt[mapKey];
@@ -108,7 +107,6 @@ export class DebtService extends BaseSupabaseService {
         debts: [new Debt(debt)]
       }));
     });
-    console.log(Array.from(debtMap.values()));
 
     return Array.from(debtMap.values());
   }
